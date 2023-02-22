@@ -66,7 +66,7 @@ public class TopkCommonWords {
     }
   }
 
-  public static class InnerJoinReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+  public static class InnerJoinReducer extends Reducer<Text, IntWritable, IntWritable, Text> {
 
     private Map<String, Integer> map = new HashMap<String, Integer>();
 
@@ -91,7 +91,8 @@ public class TopkCommonWords {
 
     public void cleanup(Context context) throws IOException, InterruptedException {
       Configuration conf = context.getConfiguration();
-      Text result = new Text();
+      Text word = new Text();
+      IntWritable count = new IntWritable();
 
       List<Map.Entry<String, Integer>> list = new LinkedList<Map.Entry<String, Integer>>(map.entrySet());
       Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
@@ -105,8 +106,9 @@ public class TopkCommonWords {
       });
 
       for (int i = 0; i < Integer.parseInt(conf.get("k")); i++) {
-        result.set(list.get(i).getValue() + "\t" + list.get(i).getKey());
-        context.write(result, null);
+        word.set(list.get(i).getKey());
+        count.set(list.get(i).getValue());
+        context.write(count, word);
       }
     }
   }
